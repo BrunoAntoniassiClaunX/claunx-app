@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClaunX — Painel de Disparos</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@300;400;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#07070F;--bg2:#0C0C18;--bg3:#111120;--bg4:#16162A;
+  --neon:#B8E0FF;--neon-dim:rgba(184,224,255,0.08);--neon-glow:rgba(184,224,255,0.3);
+  --green:#1DB954;--green-dim:rgba(29,185,84,0.10);
+  --gold:#C9A84C;--gold-dim:rgba(201,168,76,0.10);
+  --red:#E05252;--red-dim:rgba(224,82,82,0.10);
+  --amber:#F59E0B;--amber-dim:rgba(245,158,11,0.10);
+  --white:#EEEEF5;--muted:rgba(238,238,245,0.38);
+  --border:rgba(184,224,255,0.07);--border2:rgba(184,224,255,0.14);
+  --mono:'JetBrains Mono',monospace;
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--white);font-family:'Lato',sans-serif;font-size:13px;line-height:1.5;display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{height:48px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1.25rem;flex-shrink:0;z-index:20;}
+.topbar-logo{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:.12em;}
+.topbar-logo em{color:var(--neon);font-style:normal;}
+.topbar-right{display:flex;align-items:center;gap:1.25rem;}
+.topbar-clock{font-family:var(--mono);font-size:.65rem;color:var(--muted);letter-spacing:.06em;}
+.topbar-ping{display:flex;align-items:center;gap:.4rem;font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+.ping-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* LAYOUT */
+.app{display:flex;flex:1;overflow:hidden;}
+
+/* SIDEBAR */
+.sidebar{width:188px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sidebar-nav{padding:.75rem 0;flex:1;}
+.nav-item{display:flex;align-items:center;gap:.65rem;padding:.6rem 1rem;cursor:pointer;border-left:2px solid transparent;color:var(--muted);font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;transition:all .15s;user-select:none;position:relative;}
+.nav-item:hover{color:var(--white);background:var(--neon-dim);}
+.nav-item.active{color:var(--neon);border-left-color:var(--neon);background:var(--neon-dim);}
+.nav-icon{width:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.nav-icon svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+.nav-count{margin-left:auto;font-family:var(--mono);font-size:.58rem;background:var(--bg3);color:var(--neon);border:1px solid var(--border2);padding:.05rem .35rem;min-width:18px;text-align:center;}
+.sidebar-sep{height:1px;background:var(--border);margin:.5rem 1rem;}
+.sidebar-foot{padding:.75rem 1rem;font-size:.58rem;font-family:var(--mono);color:var(--muted);line-height:1.6;}
+
+/* MAIN */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.tab{display:none;flex:1;overflow:hidden;flex-direction:column;}
+.tab.active{display:flex;}
+
+/* PAGE HEADER */
+.ph{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--bg);}
+.ph-left{}
+.ph-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:.04em;line-height:1;}
+.ph-title em{color:var(--neon);font-style:normal;}
+.ph-sub{font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:.15rem;}
+.ph-right{display:flex;gap:.5rem;align-items:center;}
+
+/* BUTTONS */
+.btn{font-family:'Lato',sans-serif;font-size:.65rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase;border:none;cursor:pointer;padding:.45rem 1rem;display:inline-flex;align-items:center;gap:.4rem;transition:all .15s;white-space:nowrap;}
+.btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.btn-primary{background:var(--neon);color:#000;clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);}
+.btn-primary:hover{box-shadow:0 0 16px var(--neon-glow);transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border2);}
+.btn-ghost:hover{color:var(--white);border-color:var(--neon);}
+.btn-green{background:var(--green);color:#000;clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);}
+.btn-green:hover{box-shadow:0 0 16px rgba(29,185,84,.35);transform:translateY(-1px);}
+.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,82,82,.2);}
+.btn-danger:hover{background:rgba(224,82,82,.2);}
+.btn-sm{padding:.3rem .7rem;font-size:.6rem;}
+.btn-icon{padding:.35rem;background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-icon:hover{color:var(--white);border-color:var(--neon);}
+.btn-icon svg{width:13px;height:13px;}
+
+/* SCROLL */
+.scroll{flex:1;overflow-y:auto;padding:1.25rem 1.5rem;}
+.scroll::-webkit-scrollbar{width:3px;}
+.scroll::-webkit-scrollbar-thumb{background:var(--border2);}
+
+/* SEARCH BAR */
+.search-bar{display:flex;gap:.75rem;align-items:center;margin-bottom:1.25rem;}
+.search-input-wrap{position:relative;flex:1;}
+.search-input-wrap svg{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+.search-input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--white);font-family:var(--mono);font-size:.72rem;padding:.5rem .75rem .5rem 2rem;outline:none;transition:border-color .15s;}
+.search-input:focus{border-color:var(--neon);}
+.search-input::placeholder{color:var(--muted);}
+.sort-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.5rem .75rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;transition:all .15s;white-space:nowrap;}
+.sort-btn:hover{color:var(--white);border-color:var(--neon);}
+.sort-btn svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;}
+
+/* CLIENTES GRID */
+.clients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1px;background:var(--border);}
+.client-card{background:var(--bg2);transition:background .15s;}
+.client-card:hover{background:var(--bg3);}
+.cc-top{padding:1.1rem 1.1rem .75rem;display:flex;align-items:flex-start;gap:.85rem;}
+.cc-avatar{width:44px;height:44px;flex-shrink:0;background:var(--bg3);border:1px solid var(--border2);overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.cc-avatar img{width:100%;height:100%;object-fit:cover;}
+.cc-avatar-placeholder{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--neon);letter-spacing:.05em;}
+.cc-info{flex:1;min-width:0;}
+.cc-name{font-size:.85rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cc-seg{font-size:.62rem;color:var(--muted);margin-top:.1rem;font-family:var(--mono);}
+.cc-badges{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.35rem;}
+.badge{font-size:.55rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.15rem .45rem;border:1px solid;}
+.badge-green{color:var(--green);border-color:rgba(29,185,84,.25);background:var(--green-dim);}
+.badge-red{color:var(--red);border-color:rgba(224,82,82,.25);background:var(--red-dim);}
+.badge-amber{color:var(--amber);border-color:rgba(245,158,11,.25);background:var(--amber-dim);}
+.badge-muted{color:var(--muted);border-color:var(--border);background:transparent;}
+.badge-neon{color:var(--neon);border-color:rgba(184,224,255,.2);background:var(--neon-dim);}
+.cc-meta{padding:0 1.1rem .75rem;display:grid;grid-template-columns:1fr 1fr;gap:.3rem .75rem;}
+.cc-meta-item{display:flex;flex-direction:column;gap:.1rem;}
+.cc-meta-label{font-size:.55rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);opacity:.7;}
+.cc-meta-val{font-family:var(--mono);font-size:.68rem;color:var(--white);}
+
+/* TEMPLATES INSIDE CLIENT */
+.cc-templates{border-top:1px solid var(--border);padding:.75rem 1.1rem;}
+.cc-tmpl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;}
+.cc-tmpl-title{font-size:.58rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--neon);display:flex;align-items:center;gap:.4rem;}
+.cc-tmpl-title::before{content:'';width:12px;height:1px;background:var(--neon);}
+.tmpl-list{display:flex;flex-direction:column;gap:.35rem;}
+.tmpl-row{display:flex;align-items:center;gap:.5rem;padding:.45rem .6rem;background:var(--bg3);border:1px solid var(--border);}
+.tmpl-name{font-family:var(--mono);font-size:.65rem;color:var(--neon);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tmpl-cat{font-size:.55rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.tmpl-uses{font-family:var(--mono);font-size:.6rem;color:var(--muted);}
+.tmpl-empty{font-size:.68rem;color:var(--muted);font-style:italic;padding:.35rem 0;}
+
+/* ACTIONS BAR */
+.cc-actions{border-top:1px solid var(--border);padding:.6rem 1.1rem;display:flex;gap:.4rem;}
+
+/* EMPTY STATE */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:.75rem;padding:4rem;text-align:center;}
+.empty-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.04em;color:var(--white);opacity:.25;}
+.empty-sub{font-size:.75rem;color:var(--muted);max-width:280px;line-height:1.6;}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;z-index:100;background:rgba(7,7,15,.88);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;}
+.modal-lg{width:640px;}
+.modal-head{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.05em;}
+.modal-close{background:none;border:none;color:var(--muted);cursor:pointer;padding:.25rem;font-size:1rem;transition:color .15s;display:flex;}
+.modal-close:hover{color:var(--white);}
+.modal-close svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;}
+.modal-body{padding:1.25rem;flex:1;display:flex;flex-direction:column;gap:.9rem;overflow-y:auto;}
+.modal-foot{padding:.85rem 1.25rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.5rem;flex-shrink:0;}
+
+/* FORM */
+.field{display:flex;flex-direction:column;gap:.35rem;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+.label{font-size:.58rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
+.input,.select,.textarea{background:var(--bg3);border:1px solid var(--border);color:var(--white);font-family:var(--mono);font-size:.75rem;padding:.5rem .7rem;outline:none;transition:border-color .15s;width:100%;}
+.input:focus,.select:focus,.textarea:focus{border-color:var(--neon);}
+.input::placeholder{color:var(--muted);}
+.select{appearance:none;cursor:pointer;}
+.textarea{resize:vertical;min-height:72px;}
+.hint{font-size:.6rem;color:var(--muted);line-height:1.5;}
+.field-sep{height:1px;background:var(--border);margin:.2rem 0;}
+
+/* AVATAR UPLOAD */
+.avatar-upload{display:flex;align-items:center;gap:1rem;}
+.avatar-preview{width:56px;height:56px;background:var(--bg3);border:1px solid var(--border2);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.avatar-preview img{width:100%;height:100%;object-fit:cover;}
+.avatar-placeholder-text{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--neon);}
+.avatar-btn{position:relative;overflow:hidden;}
+.avatar-btn input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0;}
+
+/* SECTION HEADER */
+.section-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;}
+.section-label{font-size:.58rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--neon);display:flex;align-items:center;gap:.4rem;}
+.section-label::before{content:'';width:14px;height:1px;background:var(--neon);}
+
+/* DISPARO TAB */
+.disparo-wrap{display:grid;grid-template-columns:1fr 300px;flex:1;overflow:hidden;}
+.disparo-main{padding:1.25rem 1.5rem;overflow-y:auto;display:flex;flex-direction:column;gap:1rem;}
+.disparo-side{border-left:1px solid var(--border);background:var(--bg2);padding:1.25rem;overflow-y:auto;display:flex;flex-direction:column;gap:1rem;}
+.d-block{background:var(--bg2);border:1px solid var(--border);padding:1rem;}
+.d-block-title{font-size:.58rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--neon);display:flex;align-items:center;gap:.4rem;margin-bottom:.85rem;}
+.d-block-title::before{content:'';width:14px;height:1px;background:var(--neon);}
+
+/* UPLOAD */
+.upload-zone{border:1px dashed var(--border2);padding:1.5rem;text-align:center;cursor:pointer;transition:all .15s;position:relative;}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--neon);background:var(--neon-dim);}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;}
+.upload-zone-icon svg{width:22px;height:22px;stroke:var(--muted);fill:none;stroke-width:1.5;margin:0 auto .5rem;}
+.upload-zone-text{font-size:.72rem;color:var(--muted);}
+.upload-zone-text strong{color:var(--neon);}
+
+/* STATS MINI */
+.stats-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);}
+.stat-mini{background:var(--bg3);padding:.6rem .5rem;text-align:center;}
+.stat-mini-num{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;line-height:1;}
+.stat-mini-label{font-size:.55rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:.1rem;}
+
+/* LOG */
+.log{background:var(--bg);border:1px solid var(--border);padding:.6rem;font-family:var(--mono);font-size:.65rem;height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:.15rem;}
+.log::-webkit-scrollbar{width:2px;}
+.log::-webkit-scrollbar-thumb{background:var(--border2);}
+.log-line{color:var(--muted);}
+.log-line::before{content:'> ';opacity:.35;}
+.log-line.ok{color:var(--green);}
+.log-line.err{color:var(--red);}
+.log-line.info{color:var(--neon);}
+
+/* PROGRESS */
+.progress{height:2px;background:var(--border);overflow:hidden;}
+.progress-fill{height:100%;background:var(--neon);transition:width .3s;box-shadow:0 0 6px var(--neon-glow);}
+
+/* SUMMARY ROWS */
+.sum-row{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--border);}
+.sum-row:last-child{border-bottom:none;}
+.sum-key{font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);flex-shrink:0;}
+.sum-val{font-family:var(--mono);font-size:.65rem;color:var(--white);text-align:right;word-break:break-all;}
+
+/* DASHBOARD */
+.dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin-bottom:1.25rem;}
+.dash-stat{background:var(--bg2);padding:1.1rem 1.25rem;}
+.dash-stat-num{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;line-height:1;color:var(--white);}
+.dash-stat-label{font-size:.6rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-top:.25rem;}
+.dash-stat-sub{font-size:.65rem;color:var(--muted);margin-top:.15rem;font-family:var(--mono);}
+.dash-row{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+.dash-block{background:var(--bg2);border:1px solid var(--border);padding:1rem;}
+.dash-block-title{font-size:.58rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--neon);display:flex;align-items:center;gap:.4rem;margin-bottom:.85rem;}
+.dash-block-title::before{content:'';width:12px;height:1px;background:var(--neon);}
+.alert-item{display:flex;align-items:flex-start;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--border);}
+.alert-item:last-child{border-bottom:none;}
+.alert-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:.3rem;}
+.alert-dot.warn{background:var(--amber);}
+.alert-dot.err{background:var(--red);}
+.alert-dot.ok{background:var(--green);}
+.alert-text{font-size:.72rem;color:var(--muted);line-height:1.5;}
+.alert-text strong{color:var(--white);}
+
+/* HISTORICO TABLE */
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;font-size:.58rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);padding:.65rem .85rem;border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:.65rem .85rem;border-bottom:1px solid var(--border);font-size:.75rem;vertical-align:middle;}
+tr:hover td{background:var(--bg3);}
+.td-mono{font-family:var(--mono);font-size:.65rem;color:var(--muted);}
+.funil{display:flex;gap:.25rem;align-items:center;}
+.funil-step{font-family:var(--mono);font-size:.62rem;padding:.1rem .4rem;border:1px solid var(--border);color:var(--muted);}
+.funil-step.hit{color:var(--neon);border-color:rgba(184,224,255,.2);background:var(--neon-dim);}
+
+/* TOAST */
+.toasts{position:fixed;bottom:1.25rem;right:1.25rem;z-index:200;display:flex;flex-direction:column;gap:.4rem;}
+.toast{background:var(--bg3);border:1px solid var(--border2);padding:.6rem .9rem;font-size:.72rem;display:flex;align-items:center;gap:.5rem;animation:tin .2s ease;min-width:200px;}
+.toast.ok{border-color:rgba(29,185,84,.3);}
+.toast.err{border-color:rgba(224,82,82,.3);}
+@keyframes tin{from{transform:translateX(12px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* AGENDAMENTO */
+.schedule-row{display:flex;align-items:center;gap:.75rem;}
+.schedule-toggle{display:flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none;}
+.toggle-track{width:32px;height:17px;background:var(--bg3);border:1px solid var(--border);border-radius:0;position:relative;transition:background .15s;}
+.toggle-track.on{background:var(--neon);border-color:var(--neon);}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:11px;height:11px;background:var(--bg);transition:transform .15s;}
+.toggle-track.on .toggle-thumb{transform:translateX(15px);background:#000;}
+.toggle-label{font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">Claun<em>X</em> <span style="font-size:.65rem;color:var(--muted);letter-spacing:.04em;font-family:'Lato',sans-serif;font-weight:300;">/ disparos</span></div>
+  <div class="topbar-right">
+    <div class="topbar-ping"><div class="ping-dot"></div> Operacional</div>
+    <div class="topbar-clock" id="clock"></div>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-tab="dashboard">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
+        Dashboard
+      </div>
+      <div class="nav-item" data-tab="clientes">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        Clientes
+        <span class="nav-count" id="nc-clientes">0</span>
+      </div>
+      <div class="sidebar-sep"></div>
+      <div class="nav-item" data-tab="disparar">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
+        Disparar
+      </div>
+      <div class="nav-item" data-tab="historico">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+        Historico
+        <span class="nav-count" id="nc-hist">0</span>
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      v2.0 · ClaunX<br>
+      <span style="color:var(--neon);opacity:.7;">Bruno Antoniassi</span>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="tab active" id="tab-dashboard">
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-title">Dashboard</div>
+          <div class="ph-sub">Visao geral da operacao</div>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="dash-grid">
+          <div class="dash-stat">
+            <div class="dash-stat-num" id="d-total-clientes">0</div>
+            <div class="dash-stat-label">Clientes ativos</div>
+          </div>
+          <div class="dash-stat">
+            <div class="dash-stat-num" id="d-total-templates" style="color:var(--neon)">0</div>
+            <div class="dash-stat-label">Templates ativos</div>
+          </div>
+          <div class="dash-stat">
+            <div class="dash-stat-num" id="d-total-camp" style="color:var(--green)">0</div>
+            <div class="dash-stat-label">Campanhas realizadas</div>
+          </div>
+          <div class="dash-stat">
+            <div class="dash-stat-num" id="d-total-msgs" style="color:var(--gold)">0</div>
+            <div class="dash-stat-label">Mensagens disparadas</div>
+          </div>
+        </div>
+        <div class="dash-row">
+          <div class="dash-block">
+            <div class="dash-block-title">Alertas</div>
+            <div id="dash-alerts">
+              <div class="alert-item"><div class="alert-dot ok"></div><div class="alert-text"><strong>Sistema operacional.</strong> Nenhum alerta no momento.</div></div>
+            </div>
+          </div>
+          <div class="dash-block">
+            <div class="dash-block-title">Ultima campanha</div>
+            <div id="dash-last" style="font-size:.72rem;color:var(--muted);">Nenhuma campanha realizada.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="tab" id="tab-clientes">
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-title">Clientes</div>
+          <div class="ph-sub">Cadastros e templates por cliente</div>
+        </div>
+        <div class="ph-right">
+          <button class="btn btn-primary" onclick="openModal('modal-cliente')">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Novo Cliente
+          </button>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="search-bar">
+          <div class="search-input-wrap">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="search-input" id="search-clientes" placeholder="Buscar cliente..." oninput="renderClientes()">
+          </div>
+          <button class="sort-btn" id="sort-btn" onclick="toggleSort()">
+            <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            A-Z
+          </button>
+        </div>
+        <div class="empty" id="clientes-empty" style="display:none;">
+          <div class="empty-title">Sem clientes</div>
+          <div class="empty-sub">Adicione o primeiro cliente para comecar a operar.</div>
+          <button class="btn btn-primary" onclick="openModal('modal-cliente')">Adicionar Cliente</button>
+        </div>
+        <div class="clients-grid" id="clientes-grid"></div>
+      </div>
+    </div>
+
+    <!-- DISPARAR -->
+    <div class="tab" id="tab-disparar">
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-title">Novo <em>Disparo</em></div>
+          <div class="ph-sub">Configure e execute uma campanha</div>
+        </div>
+        <div class="ph-right">
+          <span id="d-status-chip" style="font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:1px solid var(--border);padding:.3rem .7rem;">Aguardando</span>
+        </div>
+      </div>
+      <div class="disparo-wrap">
+        <div class="disparo-main">
+
+          <div class="d-block">
+            <div class="d-block-title">01 — Cliente</div>
+            <div class="field">
+              <label class="label">Selecionar cliente</label>
+              <select class="select" id="d-cliente" onchange="onClienteChange()">
+                <option value="">— selecione —</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="d-block">
+            <div class="d-block-title">02 — Template</div>
+            <div class="field">
+              <label class="label">Template aprovado</label>
+              <select class="select" id="d-template" onchange="onTemplateChange()">
+                <option value="">— selecione um cliente primeiro —</option>
+              </select>
+            </div>
+            <div id="d-preview-wrap" style="display:none;margin-top:.85rem;">
+              <div class="label" style="margin-bottom:.4rem;">Preview</div>
+              <div style="background:var(--bg3);border:1px solid var(--border);padding:.75rem;font-family:var(--mono);font-size:.72rem;line-height:1.6;color:var(--white);white-space:pre-wrap;" id="d-preview"></div>
+            </div>
+          </div>
+
+          <div class="d-block">
+            <div class="d-block-title">03 — Base de Contatos</div>
+            <div class="upload-zone" id="upload-zone">
+              <input type="file" accept=".csv" id="csv-input" onchange="onCSV(event)">
+              <div class="upload-zone-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+              <div class="upload-zone-text">Arraste o CSV ou <strong>clique aqui</strong></div>
+              <div style="font-size:.6rem;color:var(--muted);margin-top:.25rem;">Colunas: nome, telefone</div>
+            </div>
+            <div id="csv-loaded" style="display:none;margin-top:.85rem;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;">
+                <span class="label">Contatos carregados</span>
+                <button class="btn btn-ghost btn-sm" onclick="clearCSV()">Limpar</button>
+              </div>
+              <div class="stats-mini">
+                <div class="stat-mini"><div class="stat-mini-num" id="csv-total">0</div><div class="stat-mini-label">Total</div></div>
+                <div class="stat-mini"><div class="stat-mini-num" id="csv-valid" style="color:var(--green)">0</div><div class="stat-mini-label">Validos</div></div>
+                <div class="stat-mini"><div class="stat-mini-num" id="csv-inv" style="color:var(--red)">0</div><div class="stat-mini-label">Invalidos</div></div>
+                <div class="stat-mini"><div class="stat-mini-num" id="csv-dup" style="color:var(--amber)">0</div><div class="stat-mini-label">Duplicatas</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-block">
+            <div class="d-block-title">04 — Agendamento</div>
+            <div class="schedule-row">
+              <div class="schedule-toggle" onclick="toggleSchedule()">
+                <div class="toggle-track" id="sched-track"><div class="toggle-thumb"></div></div>
+                <span class="toggle-label">Agendar disparo</span>
+              </div>
+            </div>
+            <div id="sched-fields" style="display:none;margin-top:.85rem;">
+              <div class="field-row">
+                <div class="field"><label class="label">Data</label><input type="date" class="input" id="sched-date"></div>
+                <div class="field"><label class="label">Hora</label><input type="time" class="input" id="sched-time"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-block">
+            <div class="d-block-title">05 — Webhook n8n</div>
+            <div class="field">
+              <label class="label">URL de producao</label>
+              <input type="text" class="input" id="d-webhook" placeholder="https://...n8n.cloud/webhook/...">
+              <div class="hint">Preenchido automaticamente ao selecionar o cliente.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="disparo-side">
+          <div>
+            <div class="section-label" style="margin-bottom:.75rem;">Resumo</div>
+            <div class="sum-row"><span class="sum-key">Cliente</span><span class="sum-val" id="s-cliente">—</span></div>
+            <div class="sum-row"><span class="sum-key">Template</span><span class="sum-val" id="s-template">—</span></div>
+            <div class="sum-row"><span class="sum-key">Contatos</span><span class="sum-val" id="s-contatos">—</span></div>
+            <div class="sum-row"><span class="sum-key">Agendado</span><span class="sum-val" id="s-sched">Nao</span></div>
+          </div>
+          <div>
+            <div class="section-label" style="margin-bottom:.6rem;">Progresso</div>
+            <div class="progress" style="margin-bottom:.6rem;"><div class="progress-fill" id="d-prog" style="width:0%"></div></div>
+            <div class="log" id="d-log"><div class="log-line info">Sistema pronto.</div></div>
+          </div>
+          <div style="margin-top:auto;">
+            <button class="btn btn-green" style="width:100%;justify-content:center;padding:.7rem;" id="btn-disparar" onclick="iniciarDisparo()">
+              <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Iniciar Disparo
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORICO -->
+    <div class="tab" id="tab-historico">
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-title">Historico</div>
+          <div class="ph-sub">Campanhas executadas</div>
+        </div>
+        <div class="ph-right">
+          <button class="btn btn-ghost btn-sm" onclick="exportHist()">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar CSV
+          </button>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="empty" id="hist-empty">
+          <div class="empty-title">Sem historico</div>
+          <div class="empty-sub">As campanhas disparadas apareceram aqui.</div>
+        </div>
+        <div style="display:none;" id="hist-table-wrap">
+          <table>
+            <thead><tr>
+              <th>Data</th><th>Cliente</th><th>Template</th>
+              <th>Total</th><th>Funil</th><th>Taxa</th>
+            </tr></thead>
+            <tbody id="hist-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL CLIENTE -->
+<div class="overlay" id="modal-cliente">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="mc-title">Novo Cliente</div>
+      <button class="modal-close" onclick="closeModal('modal-cliente')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <!-- Avatar -->
+      <div class="field">
+        <label class="label">Logo / Foto</label>
+        <div class="avatar-upload">
+          <div class="avatar-preview" id="c-avatar-preview">
+            <div class="avatar-placeholder-text" id="c-avatar-placeholder">C</div>
+            <img id="c-avatar-img" style="display:none;" src="" alt="">
+          </div>
+          <button class="btn btn-ghost btn-sm avatar-btn">
+            Selecionar PNG
+            <input type="file" accept="image/png,image/jpeg,image/webp" onchange="onAvatarChange(event,'c')">
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="clearAvatar('c')" id="c-avatar-clear" style="display:none;">Remover</button>
+        </div>
+      </div>
+      <div class="field-sep"></div>
+      <div class="field-row">
+        <div class="field">
+          <label class="label">Nome *</label>
+          <input type="text" class="input" id="c-nome" placeholder="Ex: Bar do Ze" oninput="updateAvatarPlaceholder()">
+        </div>
+        <div class="field">
+          <label class="label">Segmento</label>
+          <select class="select" id="c-seg">
+            <option value="">— selecione —</option>
+            <option>Bar / Pub</option><option>Concessionaria</option>
+            <option>Loja de Roupa</option><option>Pizzaria</option>
+            <option>Padaria</option><option>Academia</option>
+            <option>Salao</option><option>Clinica</option>
+            <option>Imobiliaria</option><option>Empresa de Eventos</option>
+            <option>Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Token Whapi *</label>
+        <input type="text" class="input" id="c-token" placeholder="Token do canal Whapi">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="label">Numero WhatsApp</label>
+          <input type="text" class="input" id="c-numero" placeholder="5511999887766">
+        </div>
+        <div class="field">
+          <label class="label">Tier Meta</label>
+          <select class="select" id="c-tier">
+            <option value="1000">1.000 msgs/mes</option>
+            <option value="10000">10.000 msgs/mes</option>
+            <option value="100000">100.000 msgs/mes</option>
+            <option value="unlimited">Ilimitado</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Webhook n8n</label>
+        <input type="text" class="input" id="c-webhook" placeholder="https://...n8n.cloud/webhook/...">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="label">Inicio contrato</label>
+          <input type="date" class="input" id="c-inicio">
+        </div>
+        <div class="field">
+          <label class="label">Valor mensal (R$)</label>
+          <input type="number" class="input" id="c-valor" placeholder="299.90" step="0.01">
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Observacoes</label>
+        <textarea class="textarea" id="c-obs" placeholder="Notas internas..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-cliente')">Cancelar</button>
+      <button class="btn btn-primary" id="mc-save-btn" onclick="salvarCliente()">Salvar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TEMPLATE -->
+<div class="overlay" id="modal-template">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Novo Template</div>
+      <button class="modal-close" onclick="closeModal('modal-template')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="label">Nome do template (exato como na Meta) *</label>
+        <input type="text" class="input" id="t-nome" placeholder="Ex: boas_vindas">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="label">Categoria</label>
+          <select class="select" id="t-cat">
+            <option value="marketing">Marketing</option>
+            <option value="utility">Utilidade</option>
+            <option value="authentication">Autenticacao</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label">Idioma</label>
+          <select class="select" id="t-idioma">
+            <option value="pt_BR">Portugues (BR)</option>
+            <option value="en_US">English (US)</option>
+            <option value="es">Espanol</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Texto do template</label>
+        <textarea class="textarea" id="t-texto" placeholder="Oi, {{1}}! Sua promocao esta disponivel." style="min-height:90px;"></textarea>
+        <div class="hint">Use {{1}}, {{2}}, etc. para variaveis dinamicas.</div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="label">Num. de variaveis</label>
+          <input type="number" class="input" id="t-vars" min="0" max="10" value="0">
+        </div>
+        <div class="field">
+          <label class="label">Status Meta</label>
+          <select class="select" id="t-status">
+            <option value="approved">Aprovado</option>
+            <option value="pending">Pendente</option>
+            <option value="rejected">Rejeitado</option>
+            <option value="paused">Pausado</option>
+            <option value="disabled">Desativado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-template')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarTemplate()">Salvar Template</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ── STATE ──
+let S = {
+  clientes: JSON.parse(localStorage.getItem('clx2_clientes')||'[]'),
+  templates: JSON.parse(localStorage.getItem('clx2_templates')||'[]'),
+  historico: JSON.parse(localStorage.getItem('clx2_historico')||'[]'),
+  csv: [],
+  sortAZ: true,
+  scheduleOn: false,
+  editingClienteId: null
+};
+
+function save(){
+  localStorage.setItem('clx2_clientes',JSON.stringify(S.clientes));
+  localStorage.setItem('clx2_templates',JSON.stringify(S.templates));
+  localStorage.setItem('clx2_historico',JSON.stringify(S.historico));
+}
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+// ── CLOCK ──
+setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString('pt-BR');},1000);
+
+// ── TABS ──
+document.querySelectorAll('.nav-item[data-tab]').forEach(el=>{
+  el.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-'+el.dataset.tab).classList.add('active');
+    if(el.dataset.tab==='disparar') populateDisparoSelects();
+    if(el.dataset.tab==='dashboard') renderDashboard();
+  });
+});
+
+// ── MODALS ──
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  if(id==='modal-cliente'){
+    S.editingClienteId=null;
+    document.getElementById('mc-title').textContent='Novo Cliente';
+    document.getElementById('mc-save-btn').textContent='Salvar Cliente';
+    document.getElementById('mc-save-btn').onclick=salvarCliente;
+    clearForm(['c-nome','c-token','c-numero','c-webhook','c-obs','c-valor']);
+    document.getElementById('c-seg').value='';
+    document.getElementById('c-tier').value='1000';
+    document.getElementById('c-inicio').value='';
+    clearAvatar('c');
+  }
+}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+function clearForm(ids){ids.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})}
+
+// ── TOAST ──
+function toast(msg,type='ok'){
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span style="color:${type==='ok'?'var(--green)':'var(--red)'};">${type==='ok'?'✓':'✕'}</span> ${msg}`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+// ── AVATAR ──
+let avatarData={c:null};
+
+function onAvatarChange(e,prefix){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    avatarData[prefix]=ev.target.result;
+    document.getElementById(`${prefix}-avatar-img`).src=ev.target.result;
+    document.getElementById(`${prefix}-avatar-img`).style.display='block';
+    document.getElementById(`${prefix}-avatar-placeholder`).style.display='none';
+    document.getElementById(`${prefix}-avatar-clear`).style.display='';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearAvatar(prefix){
+  avatarData[prefix]=null;
+  document.getElementById(`${prefix}-avatar-img`).style.display='none';
+  document.getElementById(`${prefix}-avatar-img`).src='';
+  document.getElementById(`${prefix}-avatar-placeholder`).style.display='';
+  document.getElementById(`${prefix}-avatar-clear`).style.display='none';
+}
+
+function updateAvatarPlaceholder(){
+  const v=document.getElementById('c-nome').value.trim();
+  document.getElementById('c-avatar-placeholder').textContent=v?v[0].toUpperCase():'C';
+}
+
+// ── CLIENTES ──
+function toggleSort(){
+  S.sortAZ=!S.sortAZ;
+  document.getElementById('sort-btn').innerHTML=`<svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg> ${S.sortAZ?'A-Z':'Z-A'}`;
+  renderClientes();
+}
+
+function renderClientes(){
+  const q=document.getElementById('search-clientes').value.toLowerCase().trim();
+  let list=[...S.clientes];
+  if(q) list=list.filter(c=>c.nome.toLowerCase().includes(q));
+  list.sort((a,b)=>S.sortAZ?a.nome.localeCompare(b.nome):b.nome.localeCompare(a.nome));
+  document.getElementById('nc-clientes').textContent=S.clientes.length;
+  const grid=document.getElementById('clientes-grid');
+  const empty=document.getElementById('clientes-empty');
+  if(!list.length){grid.innerHTML='';grid.style.display='none';empty.style.display='flex';return;}
+  empty.style.display='none';grid.style.display='grid';
+  grid.innerHTML=list.map(c=>{
+    const tmpls=S.templates.filter(t=>t.clienteId===c.id);
+    const approved=tmpls.filter(t=>t.status==='approved').length;
+    const initials=c.nome.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    return `
+    <div class="client-card">
+      <div class="cc-top">
+        <div class="cc-avatar">
+          ${c.avatar?`<img src="${c.avatar}" alt="">`:`<div class="cc-avatar-placeholder">${initials}</div>`}
+        </div>
+        <div class="cc-info">
+          <div class="cc-name">${c.nome}</div>
+          <div class="cc-seg">${c.segmento||'Sem segmento'} · ${c.numero||'—'}</div>
+          <div class="cc-badges">
+            <span class="badge badge-green">Ativo</span>
+            <span class="badge badge-neon">${c.tier||'1k'} msgs</span>
+            ${approved>0?`<span class="badge badge-muted">${approved} tmpl</span>`:''}
+          </div>
+        </div>
+      </div>
+      <div class="cc-meta">
+        <div class="cc-meta-item"><div class="cc-meta-label">Inicio</div><div class="cc-meta-val">${c.inicio||'—'}</div></div>
+        <div class="cc-meta-item"><div class="cc-meta-label">Mensal</div><div class="cc-meta-val">${c.valor?'R$ '+parseFloat(c.valor).toFixed(2):'—'}</div></div>
+        <div class="cc-meta-item"><div class="cc-meta-label">Campanhas</div><div class="cc-meta-val">${S.historico.filter(h=>h.clienteId===c.id).length}</div></div>
+        <div class="cc-meta-item"><div class="cc-meta-label">Token</div><div class="cc-meta-val">${c.token?'••••'+c.token.slice(-4):'—'}</div></div>
+      </div>
+      <div class="cc-templates">
+        <div class="cc-tmpl-header">
+          <div class="cc-tmpl-title">Templates</div>
+          <button class="btn btn-ghost btn-sm" onclick="openAddTemplate('${c.id}')">+ Adicionar</button>
+        </div>
+        <div class="tmpl-list">
+          ${tmpls.length?tmpls.map(t=>`
+            <div class="tmpl-row">
+              <div class="tmpl-name">${t.nome}</div>
+              <div class="tmpl-cat">${t.cat||'mkt'}</div>
+              <span class="badge ${statusBadge(t.status)}">${t.status}</span>
+              <div class="tmpl-uses">${t.uses||0}x</div>
+              <button class="btn btn-icon" onclick="deleteTemplate('${t.id}','${c.id}')"><svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
+            </div>
+          `).join(''):`<div class="tmpl-empty">Nenhum template cadastrado.</div>`}
+        </div>
+      </div>
+      <div class="cc-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editCliente('${c.id}')">
+          <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCliente('${c.id}')">Remover</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function statusBadge(s){
+  const m={approved:'badge-green',pending:'badge-amber',rejected:'badge-red',paused:'badge-amber',disabled:'badge-red'};
+  return m[s]||'badge-muted';
+}
+
+function salvarCliente(){
+  const nome=document.getElementById('c-nome').value.trim();
+  const token=document.getElementById('c-token').value.trim();
+  if(!nome){toast('Nome obrigatorio','err');return;}
+  if(!token){toast('Token Whapi obrigatorio','err');return;}
+  const tierMap={'1000':'1k','10000':'10k','100000':'100k','unlimited':'Ilimitado'};
+  const tierVal=document.getElementById('c-tier').value;
+  if(S.editingClienteId){
+    const c=S.clientes.find(x=>x.id===S.editingClienteId);
+    Object.assign(c,{
+      nome,segmento:document.getElementById('c-seg').value,token,
+      numero:document.getElementById('c-numero').value.trim(),
+      webhook:document.getElementById('c-webhook').value.trim(),
+      tier:tierMap[tierVal],inicio:document.getElementById('c-inicio').value,
+      valor:document.getElementById('c-valor').value,
+      obs:document.getElementById('c-obs').value.trim(),
+      avatar:avatarData['c']||c.avatar
+    });
+    toast('Cliente atualizado!');
+  } else {
+    S.clientes.push({
+      id:uid(),nome,segmento:document.getElementById('c-seg').value,token,
+      numero:document.getElementById('c-numero').value.trim(),
+      webhook:document.getElementById('c-webhook').value.trim(),
+      tier:tierMap[tierVal],inicio:document.getElementById('c-inicio').value,
+      valor:document.getElementById('c-valor').value,
+      obs:document.getElementById('c-obs').value.trim(),
+      avatar:avatarData['c']||null,
+      criadoEm:new Date().toISOString()
+    });
+    toast('Cliente adicionado!');
+  }
+  save();renderClientes();renderDashboard();closeModal('modal-cliente');
+}
+
+function editCliente(id){
+  const c=S.clientes.find(x=>x.id===id);
+  if(!c)return;
+  S.editingClienteId=id;
+  document.getElementById('mc-title').textContent='Editar Cliente';
+  document.getElementById('mc-save-btn').textContent='Atualizar';
+  document.getElementById('c-nome').value=c.nome;
+  document.getElementById('c-seg').value=c.segmento||'';
+  document.getElementById('c-token').value=c.token;
+  document.getElementById('c-numero').value=c.numero||'';
+  document.getElementById('c-webhook').value=c.webhook||'';
+  document.getElementById('c-obs').value=c.obs||'';
+  document.getElementById('c-valor').value=c.valor||'';
+  document.getElementById('c-inicio').value=c.inicio||'';
+  if(c.avatar){
+    avatarData['c']=c.avatar;
+    document.getElementById('c-avatar-img').src=c.avatar;
+    document.getElementById('c-avatar-img').style.display='block';
+    document.getElementById('c-avatar-placeholder').style.display='none';
+    document.getElementById('c-avatar-clear').style.display='';
+  }
+  openModal('modal-cliente');
+}
+
+function deleteCliente(id){
+  if(!confirm('Remover cliente e todos os templates associados?'))return;
+  S.clientes=S.clientes.filter(c=>c.id!==id);
+  S.templates=S.templates.filter(t=>t.clienteId!==id);
+  save();renderClientes();renderDashboard();toast('Cliente removido');
+}
+
+// ── TEMPLATES ──
+function openAddTemplate(clienteId){
+  document.getElementById('modal-template').dataset.clienteId=clienteId;
+  openModal('modal-template');
+}
+
+function salvarTemplate(){
+  const nome=document.getElementById('t-nome').value.trim();
+  const clienteId=document.getElementById('modal-template').dataset.clienteId;
+  if(!nome){toast('Nome obrigatorio','err');return;}
+  if(!clienteId){toast('Cliente nao identificado','err');return;}
+  S.templates.push({
+    id:uid(),clienteId,nome,
+    cat:document.getElementById('t-cat').value,
+    idioma:document.getElementById('t-idioma').value,
+    texto:document.getElementById('t-texto').value.trim(),
+    vars:parseInt(document.getElementById('t-vars').value)||0,
+    status:document.getElementById('t-status').value,
+    uses:0,criadoEm:new Date().toISOString()
+  });
+  save();renderClientes();renderDashboard();closeModal('modal-template');
+  clearForm(['t-nome','t-texto']);
+  document.getElementById('t-vars').value='0';
+  toast('Template adicionado!');
+}
+
+function deleteTemplate(id,clienteId){
+  S.templates=S.templates.filter(t=>t.id!==id);
+  save();renderClientes();toast('Template removido');
+}
+
+// ── DISPARO ──
+function populateDisparoSelects(){
+  const sel=document.getElementById('d-cliente');
+  sel.innerHTML='<option value="">— selecione —</option>'+
+    S.clientes.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  document.getElementById('d-template').innerHTML='<option value="">— selecione um cliente primeiro —</option>';
+}
+
+function onClienteChange(){
+  const id=document.getElementById('d-cliente').value;
+  const c=S.clientes.find(x=>x.id===id);
+  const tmpls=S.templates.filter(t=>t.clienteId===id&&t.status==='approved');
+  document.getElementById('d-template').innerHTML=tmpls.length
+    ?'<option value="">— selecione —</option>'+tmpls.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')
+    :'<option value="">Nenhum template aprovado</option>';
+  if(c?.webhook)document.getElementById('d-webhook').value=c.webhook;
+  document.getElementById('s-cliente').textContent=c?.nome||'—';
+  document.getElementById('d-preview-wrap').style.display='none';
+}
+
+function onTemplateChange(){
+  const id=document.getElementById('d-template').value;
+  const t=S.templates.find(x=>x.id===id);
+  document.getElementById('s-template').textContent=t?.nome||'—';
+  if(t&&t.texto){document.getElementById('d-preview').textContent=t.texto;document.getElementById('d-preview-wrap').style.display='block';}
+  else document.getElementById('d-preview-wrap').style.display='none';
+}
+
+// ── SCHEDULE ──
+function toggleSchedule(){
+  S.scheduleOn=!S.scheduleOn;
+  const track=document.getElementById('sched-track');
+  track.classList.toggle('on',S.scheduleOn);
+  document.getElementById('sched-fields').style.display=S.scheduleOn?'block':'none';
+  document.getElementById('s-sched').textContent=S.scheduleOn?'Sim':'Nao';
+}
+
+// ── CSV ──
+function sanitizePhone(raw){
+  if(!raw)return null;
+  let n=raw.toString().replace(/\D/g,'');
+  if(!n.startsWith('55'))n='55'+n;
+  if(n.length===12){const ddd=n.substring(2,4);const sp=['11','12','13','14','15','16','17','18','19'];if(sp.includes(ddd))n=n.substring(0,4)+'9'+n.substring(4);}
+  if(n.length<12||n.length>13)return null;
+  return n;
+}
+
+function onCSV(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const lines=ev.target.result.split('\n').filter(l=>l.trim());
+    const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/"/g,''));
+    const ni=headers.findIndex(h=>h.includes('nome')||h.includes('name'));
+    const ti=headers.findIndex(h=>h.includes('tel')||h.includes('phone')||h.includes('fone')||h.includes('numero')||h.includes('whatsapp'));
+    if(ti===-1){toast('Coluna telefone nao encontrada','err');return;}
+    const phones=new Set();let inv=0,dup=0;S.csv=[];
+    for(let i=1;i<lines.length;i++){
+      const cols=lines[i].split(',').map(c=>c.trim().replace(/"/g,''));
+      const nome=ni>=0?cols[ni]:'Contato';
+      const tel=sanitizePhone(cols[ti]);
+      if(!tel){inv++;continue;}
+      if(phones.has(tel)){dup++;continue;}
+      phones.add(tel);S.csv.push({nome,telefone:tel});
+    }
+    document.getElementById('csv-total').textContent=lines.length-1;
+    document.getElementById('csv-valid').textContent=S.csv.length;
+    document.getElementById('csv-inv').textContent=inv;
+    document.getElementById('csv-dup').textContent=dup;
+    document.getElementById('csv-loaded').style.display='block';
+    document.getElementById('upload-zone').style.display='none';
+    document.getElementById('s-contatos').textContent=`${S.csv.length} validos`;
+    toast(`${S.csv.length} contatos carregados`);
+  };
+  reader.readAsText(file);
+}
+
+function clearCSV(){
+  S.csv=[];
+  document.getElementById('csv-loaded').style.display='none';
+  document.getElementById('upload-zone').style.display='block';
+  document.getElementById('csv-input').value='';
+  document.getElementById('s-contatos').textContent='—';
+}
+
+// ── DISPARO ──
+function addLog(msg,type=''){
+  const log=document.getElementById('d-log');
+  const line=document.createElement('div');
+  line.className='log-line '+type;
+  line.textContent=`[${new Date().toLocaleTimeString('pt-BR')}] ${msg}`;
+  log.appendChild(line);log.scrollTop=log.scrollHeight;
+}
+
+async function iniciarDisparo(){
+  const cId=document.getElementById('d-cliente').value;
+  const tId=document.getElementById('d-template').value;
+  const webhook=document.getElementById('d-webhook').value.trim();
+  const c=S.clientes.find(x=>x.id===cId);
+  const t=S.templates.find(x=>x.id===tId);
+  if(!cId){toast('Selecione um cliente','err');return;}
+  if(!tId){toast('Selecione um template','err');return;}
+  if(!S.csv.length){toast('Carregue a base de contatos','err');return;}
+  if(!webhook){toast('URL do webhook obrigatoria','err');return;}
+  if(!confirm(`Disparar para ${S.csv.length} contatos?\nTemplate: ${t.nome} | Cliente: ${c.nome}`))return;
+
+  document.getElementById('btn-disparar').disabled=true;
+  document.getElementById('btn-disparar').textContent='Disparando...';
+  document.getElementById('d-log').innerHTML='';
+  document.getElementById('d-prog').style.width='0%';
+  document.getElementById('d-status-chip').textContent='Disparando';
+  document.getElementById('d-status-chip').style.color='var(--amber)';
+
+  addLog(`Iniciando: ${S.csv.length} contatos | ${t.nome}`,'info');
+
+  try{
+    const res=await fetch(webhook,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contacts:S.csv.map(c=>({name:c.nome,phone:c.telefone})),template_name:t.nome,template_variables:[],whapi_token:c.token})});
+    const data=await res.json();
+    document.getElementById('d-prog').style.width='100%';
+    addLog(`Concluido! Enviados: ${data.sent||0} | Erros: ${data.errors||0} | Taxa: ${data.success_rate||'—'}`,'ok');
+    // incrementa uses
+    t.uses=(t.uses||0)+1;
+    S.historico.unshift({id:uid(),data:new Date().toISOString(),clienteId:cId,cliente:c.nome,template:t.nome,total:data.total||S.csv.length,enviados:data.sent||0,erros:data.errors||0,taxa:data.success_rate||'—',funil:{disparado:data.total||S.csv.length,entregue:0,lido:0,respondeu:0}});
+    save();renderHistorico();renderDashboard();
+    document.getElementById('d-status-chip').textContent='Concluido';
+    document.getElementById('d-status-chip').style.color='var(--green)';
+    document.getElementById('nc-hist').textContent=S.historico.length;
+    toast('Disparo concluido!');
+  }catch(err){
+    addLog(`Erro: ${err.message}`,'err');
+    document.getElementById('d-status-chip').textContent='Erro';
+    document.getElementById('d-status-chip').style.color='var(--red)';
+    toast('Erro: '+err.message,'err');
+  }
+  document.getElementById('btn-disparar').disabled=false;
+  document.getElementById('btn-disparar').innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Iniciar Disparo';
+}
+
+// ── HISTORICO ──
+function renderHistorico(){
+  const wrap=document.getElementById('hist-table-wrap');
+  const empty=document.getElementById('hist-empty');
+  document.getElementById('nc-hist').textContent=S.historico.length;
+  if(!S.historico.length){wrap.style.display='none';empty.style.display='flex';return;}
+  empty.style.display='none';wrap.style.display='block';
+  document.getElementById('hist-tbody').innerHTML=S.historico.map(h=>`
+    <tr>
+      <td class="td-mono">${new Date(h.data).toLocaleString('pt-BR')}</td>
+      <td>${h.cliente}</td>
+      <td style="font-family:var(--mono);color:var(--neon);font-size:.68rem;">${h.template}</td>
+      <td class="td-mono">${h.total}</td>
+      <td><div class="funil">
+        <span class="funil-step hit">${h.funil?.disparado||h.total}</span>
+        <span style="color:var(--muted);font-size:.6rem;">→</span>
+        <span class="funil-step ${h.funil?.entregue?'hit':''}">${h.funil?.entregue||'—'}</span>
+        <span style="color:var(--muted);font-size:.6rem;">→</span>
+        <span class="funil-step ${h.funil?.lido?'hit':''}">${h.funil?.lido||'—'}</span>
+        <span style="color:var(--muted);font-size:.6rem;">→</span>
+        <span class="funil-step ${h.funil?.respondeu?'hit':''}">${h.funil?.respondeu||'—'}</span>
+      </div></td>
+      <td class="td-mono">${h.taxa}</td>
+    </tr>
+  `).join('');
+}
+
+function exportHist(){
+  if(!S.historico.length){toast('Sem historico','err');return;}
+  const csv=['Data,Cliente,Template,Total,Enviados,Erros,Taxa',
+    ...S.historico.map(h=>`${new Date(h.data).toLocaleString('pt-BR')},${h.cliente},${h.template},${h.total},${h.enviados},${h.erros},${h.taxa}`)].join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=`claunx-historico-${Date.now()}.csv`;a.click();
+  toast('Exportado!');
+}
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  const totalMsgs=S.historico.reduce((a,h)=>a+(h.enviados||0),0);
+  document.getElementById('d-total-clientes').textContent=S.clientes.length;
+  document.getElementById('d-total-templates').textContent=S.templates.filter(t=>t.status==='approved').length;
+  document.getElementById('d-total-camp').textContent=S.historico.length;
+  document.getElementById('d-total-msgs').textContent=totalMsgs.toLocaleString('pt-BR');
+
+  // Last campaign
+  const last=S.historico[0];
+  const lastEl=document.getElementById('dash-last');
+  if(last){
+    lastEl.innerHTML=`
+      <div style="font-size:.72rem;color:var(--white);margin-bottom:.35rem;">${last.cliente}</div>
+      <div style="font-family:var(--mono);font-size:.65rem;color:var(--neon);margin-bottom:.35rem;">${last.template}</div>
+      <div style="font-size:.65rem;color:var(--muted);">${new Date(last.data).toLocaleString('pt-BR')} · ${last.enviados} enviados · ${last.taxa}</div>
+    `;
+  } else {lastEl.innerHTML='<span style="font-size:.72rem;color:var(--muted);">Nenhuma campanha realizada.</span>';}
+
+  // Alerts
+  const alerts=[];
+  const noWebhook=S.clientes.filter(c=>!c.webhook);
+  if(noWebhook.length) alerts.push({type:'warn',msg:`<strong>${noWebhook.length} cliente(s)</strong> sem webhook n8n configurado.`});
+  const noTemplate=S.clientes.filter(c=>!S.templates.find(t=>t.clienteId===c.id&&t.status==='approved'));
+  if(noTemplate.length) alerts.push({type:'warn',msg:`<strong>${noTemplate.length} cliente(s)</strong> sem template aprovado.`});
+  const alertEl=document.getElementById('dash-alerts');
+  alertEl.innerHTML=alerts.length
+    ?alerts.map(a=>`<div class="alert-item"><div class="alert-dot ${a.type}"></div><div class="alert-text">${a.msg}</div></div>`).join('')
+    :'<div class="alert-item"><div class="alert-dot ok"></div><div class="alert-text"><strong>Tudo em ordem.</strong> Nenhum alerta no momento.</div></div>';
+}
+
+// ── INIT ──
+renderClientes();renderHistorico();renderDashboard();populateDisparoSelects();
+</script>
+</body>
+</html>
